@@ -1,6 +1,6 @@
 # CavyCave-firmware
 
-[![GPL v3 License][license-shield]][license-url]
+[![License][license-shield]](LICENSE)
 
 ## About
 
