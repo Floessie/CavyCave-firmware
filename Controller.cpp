@@ -2,7 +2,7 @@
 	CavyCave - A temperature controlled box for guinea pigs and other
 		small animals kept outside in winter
 
-	Copyright (C) 2020 Flössie <floessie.mail@gmail.com>
+	Copyright (C) 2020-2021 Flössie <floessie.mail@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -64,6 +64,8 @@ public:
 			200,
 			750,
 			700,
+			0,
+			0,
 			5,
 			140,
 			180,
@@ -82,7 +84,8 @@ public:
 			Led::Color::RED
 		},
 		next_update_timestamp(0),
-		fan_speedup_active(false),
+		fan_timer(FanTimer::OFF),
+		fan_timer_timestamp(0),
 		fan_speedup_timestamp(0)
 	{
 	}
@@ -169,15 +172,14 @@ public:
 					}
 				}
 
-				if (state.room_values_valid) {
+				if (fan_timer != FanTimer::PAUSE && state.room_values_valid) {
 					if (state.fan_speed == Fan::Speed::OFF && state.humidity_per_mill >= configuration.max_humidity_per_mill) {
 						state.fan_speed = Fan::Speed::LOW;
-						fan_speedup_active = true;
 						fan_speedup_timestamp = millis() + configuration.fan_speedup_delay_minutes * 60UL * 1000UL;
 					}
 					else if (state.fan_speed != Fan::Speed::OFF && state.humidity_per_mill <= configuration.min_humidity_per_mill) {
 						state.fan_speed = Fan::Speed::OFF;
-						fan_speedup_active = false;
+						fan_timer = FanTimer::OFF;
 					}
 				}
 
@@ -193,9 +195,29 @@ public:
 			}
 		}
 
-		if (fan_speedup_active && timeAfter(millis(), fan_speedup_timestamp)) {
-			fan_speedup_active = false;
-			state.fan_speed = Fan::Speed::HIGH;
+		if (state.mode == Mode::AUTO) {
+			if (state.fan_speed == Fan::Speed::LOW && timeAfter(millis(), fan_speedup_timestamp)) {
+				state.fan_speed = Fan::Speed::HIGH;
+			}
+
+			if (
+				configuration.fan_max_run_minutes
+				&& state.fan_speed != Fan::Speed::OFF
+				&& fan_timer == FanTimer::OFF
+			) {
+				fan_timer = FanTimer::ON;
+				fan_timer_timestamp = millis() + configuration.fan_max_run_minutes * 60UL * 1000UL;
+			}
+
+			if (fan_timer != FanTimer::OFF && timeAfter(millis(), fan_timer_timestamp)) {
+				if (fan_timer == FanTimer::ON) {
+					state.fan_speed = Fan::Speed::OFF;
+					fan_timer = FanTimer::PAUSE;
+					fan_timer_timestamp = millis() + configuration.fan_pause_minutes * 60UL * 1000UL;
+				} else {
+					fan_timer = FanTimer::OFF;
+				}
+			}
 		}
 
 		fan.setSpeed(state.fan_speed);
@@ -320,6 +342,14 @@ public:
 		Serial.print(F("  Minimum humidity: "));
 		printHumidity(configuration.min_humidity_per_mill);
 
+		Serial.print(F("  Fan maximum run minutes: "));
+		if (configuration.fan_max_run_minutes) {
+			Serial.println(static_cast<unsigned int>(configuration.fan_max_run_minutes));
+		} else {
+			Serial.println(F("unlimited"));
+		}
+		Serial.print(F("  Fan pause minutes: "));
+		Serial.println(static_cast<unsigned int>(configuration.fan_pause_minutes));
 		Serial.print(F("  Fan speedup delay minutes: "));
 		Serial.println(static_cast<unsigned int>(configuration.fan_speedup_delay_minutes));
 		Serial.print(F("  Fan speed LOW value: "));
@@ -354,6 +384,9 @@ public:
 	void setAutoMode()
 	{
 		state.mode = Mode::AUTO;
+
+		state.fan_speed = Fan::Speed::OFF;
+		fan_timer = FanTimer::OFF;
 	}
 
 	void setFanSpeed(Fan::Speed value)
@@ -361,7 +394,7 @@ public:
 		state.mode = Mode::MANUAL;
 
 		state.fan_speed = value;
-		fan_speedup_active = false;
+		fan_timer = FanTimer::OFF;
 	}
 
 	void setHeatingLounge(bool value)
@@ -386,6 +419,12 @@ public:
 	}
 
 private:
+	enum class FanTimer {
+		OFF,
+		ON,
+		PAUSE
+	};
+
 	void loadConfiguration()
 	{
 		if (EEPROM.read(0) != 0xFF) {
@@ -407,7 +446,8 @@ private:
 
 	uint32_t next_update_timestamp;
 
-	bool fan_speedup_active;
+	FanTimer fan_timer;
+	uint32_t fan_timer_timestamp;
 	uint32_t fan_speedup_timestamp;
 };
 

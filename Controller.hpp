@@ -2,7 +2,7 @@
 	CavyCave - A temperature controlled box for guinea pigs and other
 		small animals kept outside in winter
 
-	Copyright (C) 2020 Flössie <floessie.mail@gmail.com>
+	Copyright (C) 2020-2021 Flössie <floessie.mail@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -50,6 +50,8 @@ public:
 		int16_t max_humidity_per_mill;
 		int16_t min_humidity_per_mill;
 
+		uint8_t fan_max_run_minutes;
+		uint8_t fan_pause_minutes;
 		uint8_t fan_speedup_delay_minutes;
 		uint8_t fan_speed_low;
 		uint8_t fan_speed_high;

@@ -2,7 +2,7 @@
 	CavyCave - A temperature controlled box for guinea pigs and other
 		small animals kept outside in winter
 
-	Copyright (C) 2020 Flössie <floessie.mail@gmail.com>
+	Copyright (C) 2020-2021 Flössie <floessie.mail@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -186,6 +186,28 @@ namespace
 				controller.setConfiguration(configuration);
 				Serial.print(F("Minimum humidity set to "));
 				printHumidity(v);
+				handled = true;
+			}
+			else if (cmd == F("fan_max_run_minutes")) {
+				const uint8_t v = val.toInt();
+				Controller::Configuration configuration = controller.getConfiguration();
+				configuration.fan_max_run_minutes = v;
+				controller.setConfiguration(configuration);
+				Serial.print(F("Fan maximum run minutes set to "));
+				if (v) {
+					Serial.println(static_cast<unsigned int>(v));
+				} else {
+					Serial.println(F("unlimited"));
+				}
+				handled = true;
+			}
+			else if (cmd == F("fan_pause_minutes")) {
+				const uint8_t v = val.toInt();
+				Controller::Configuration configuration = controller.getConfiguration();
+				configuration.fan_pause_minutes = v;
+				controller.setConfiguration(configuration);
+				Serial.print(F("Fan pause minutes set to "));
+				Serial.println(static_cast<unsigned int>(v));
 				handled = true;
 			}
 			else if (cmd == F("fan_speedup_delay_minutes")) {

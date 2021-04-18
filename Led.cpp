@@ -2,7 +2,7 @@
 	CavyCave - A temperature controlled box for guinea pigs and other
 		small animals kept outside in winter
 
-	Copyright (C) 2020 Flössie <floessie.mail@gmail.com>
+	Copyright (C) 2020-2021 Flössie <floessie.mail@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 	CavyCave - A temperature controlled box for guinea pigs and other
 		small animals kept outside in winter
 
-	Copyright (C) 2020 Flössie <floessie.mail@gmail.com>
+	Copyright (C) 2020-2021 Flössie <floessie.mail@gmail.com>
 
 	This program is free software: you can redistribute it and/or modify
 	it under the terms of the GNU General Public License as published by
